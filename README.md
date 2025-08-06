@@ -40,23 +40,28 @@ cd EmailWarmupPro
 npm install
 ```
 
-3. Set up environment variables:
+3. Set up Supabase database:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Execute the SQL schema from `supabase/schema.sql` in your Supabase SQL editor
+   - See `supabase/README.md` for detailed setup instructions
+
+4. Set up environment variables:
 ```bash
 cp .env.example .env.local
 ```
 
 Edit `.env.local` with your Supabase credentials:
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-4. Run the development server:
+5. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Database Setup
 
