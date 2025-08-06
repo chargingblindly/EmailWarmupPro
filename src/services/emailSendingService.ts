@@ -145,7 +145,7 @@ export class EmailSendingService {
       // if we get a proper authentication error vs network error, 
       // we know the account is properly configured
       return testResult.success || 
-             (testResult.error && !testResult.error.includes('access token'))
+             (!!testResult.error && !testResult.error.includes('access token'))
     } catch (error) {
       console.error('Error testing email sending:', error)
       return false
@@ -155,8 +155,8 @@ export class EmailSendingService {
   /**
    * Check if an error indicates an expired or invalid token
    */
-  private static isTokenExpiredError(error: any): boolean {
-    const errorMessage = error?.message?.toLowerCase() || ''
+  private static isTokenExpiredError(error: unknown): boolean {
+    const errorMessage = (error as Error)?.message?.toLowerCase() || ''
     return errorMessage.includes('unauthorized') ||
            errorMessage.includes('invalid_grant') ||
            errorMessage.includes('token_expired') ||

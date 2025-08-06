@@ -111,7 +111,7 @@ export const EmailAccountCard = ({ account, onRemove, onUpdate }: EmailAccountCa
         connectionStatus: isConnected ? 'connected' : 'error',
         lastChecked: new Date().toISOString()
       })
-    } catch (error) {
+    } catch {
       onUpdate({
         ...account,
         connectionStatus: 'error',

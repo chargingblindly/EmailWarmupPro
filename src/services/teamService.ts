@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+// import { supabase } from '@/lib/supabase' // Currently not used in mock implementation
 import { TeamMember, TeamInvitation, InviteTeamMemberRequest, TeamAuditLog, TeamStats } from '@/types/team'
 
 export class TeamService {
@@ -57,7 +57,7 @@ export class TeamService {
   /**
    * Get team statistics
    */
-  static async getTeamStats(tenantId: string): Promise<TeamStats> {
+  static async getTeamStats(_tenantId: string): Promise<TeamStats> {
     // Mock implementation
     await new Promise(resolve => setTimeout(resolve, 300))
     
@@ -142,7 +142,7 @@ export class TeamService {
   /**
    * Accept invitation
    */
-  static async acceptInvitation(token: string, userId: string): Promise<void> {
+  static async acceptInvitation(_token: string, _userId: string): Promise<void> {
     // Mock implementation
     await new Promise(resolve => setTimeout(resolve, 1000))
   }
@@ -150,7 +150,7 @@ export class TeamService {
   /**
    * Decline invitation
    */
-  static async declineInvitation(token: string): Promise<void> {
+  static async declineInvitation(_token: string): Promise<void> {
     // Mock implementation
     await new Promise(resolve => setTimeout(resolve, 500))
   }
@@ -213,7 +213,7 @@ export class TeamService {
   /**
    * Resend invitation
    */
-  static async resendInvitation(invitationId: string, userId: string): Promise<void> {
+  static async resendInvitation(_invitationId: string, _userId: string): Promise<void> {
     // Mock implementation
     await new Promise(resolve => setTimeout(resolve, 800))
   }
@@ -221,7 +221,7 @@ export class TeamService {
   /**
    * Cancel invitation
    */
-  static async cancelInvitation(invitationId: string, userId: string): Promise<void> {
+  static async cancelInvitation(_invitationId: string, _userId: string): Promise<void> {
     // Mock implementation
     await new Promise(resolve => setTimeout(resolve, 600))
   }

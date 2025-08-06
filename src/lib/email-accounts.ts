@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Database } from './supabase'
+import { MS365OAuth } from './ms365-oauth'
 
 type EmailAccount = Database['public']['Tables']['email_accounts']['Row']
 type EmailAccountInsert = Database['public']['Tables']['email_accounts']['Insert']

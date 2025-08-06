@@ -65,7 +65,7 @@ export class MS365OAuth {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   }
 
-  static async exchangeCodeForTokens(code: string, state?: string): Promise<MS365TokenResponse> {
+  static async exchangeCodeForTokens(code: string, _state?: string): Promise<MS365TokenResponse> {
     const config = this.getConfig()
     
     try {
@@ -162,7 +162,7 @@ export class MS365OAuth {
     }
   }
 
-  static async revokeToken(accessToken: string): Promise<boolean> {
+  static async revokeToken(_accessToken: string): Promise<boolean> {
     try {
       // Microsoft Graph doesn't have a direct revoke endpoint for access tokens
       // Access tokens expire automatically. For a more complete implementation,

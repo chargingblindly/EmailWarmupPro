@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-interface TokenRequest {
-  code: string
-  redirectUri: string
-}
-
-interface RefreshTokenRequest {
-  refreshToken: string
-}
+// Interfaces removed as they were not used directly
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_MS365_CLIENT_ID
 const CLIENT_SECRET = process.env.MS365_CLIENT_SECRET
