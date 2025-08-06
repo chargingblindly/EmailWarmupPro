@@ -32,12 +32,7 @@ jobs:
         run: npm run build
 
       - name: Run Cypress tests
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm start
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 120
-          browser: chrome
+        run: npm run test:e2e:ci
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://ldxadqnstivqdcquyepv.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_dEpTMzKPo-mQ0RDiYcoAww_Yf-843HQ
