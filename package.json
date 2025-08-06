@@ -1,0 +1,33 @@
+{
+  "name": "email-warmup-pro",
+  "version": "1.0.0",
+  "description": "Professional email warmup service to improve sender reputation",
+  "main": "app.js",
+  "scripts": {
+    "start": "http-server . -p 3000 -c-1",
+    "build": "echo 'Build completed - static files ready'",
+    "dev": "http-server . -p 3000 -c-1 -o",
+    "lint": "eslint app.js",
+    "format": "prettier --write *.js *.html *.css"
+  },
+  "keywords": [
+    "email",
+    "warmup",
+    "deliverability",
+    "supabase",
+    "ms365"
+  ],
+  "author": "Email Warmup Pro Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
