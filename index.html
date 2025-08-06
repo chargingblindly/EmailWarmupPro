@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Warmup Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="auth-title">Sign In</h3>
+                <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="auth-form">
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" id="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn--primary btn--full-width">
+                            <span id="auth-btn-text">Sign In</span>
+                        </button>
+                    </div>
+                </form>
+                <p class="auth-switch">
+                    <span id="auth-switch-text">Don't have an account?</span>
+                    <a href="#" id="auth-switch-link" onclick="toggleAuthMode()">Sign Up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landing Page -->
+    <div id="landing-page" class="landing">
+        <nav class="landing-nav">
+            <div class="container flex justify-between items-center">
+                <div class="logo">📧 Email Warmup Pro</div>
+                <div class="nav-actions">
+                    <button class="btn btn--outline" onclick="showAuthModal('signin')">Sign In</button>
+                    <button class="btn btn--primary" onclick="showAuthModal('signup')">Get Started</button>
+                </div>
+            </div>
+        </nav>
+        
+        <main class="landing-main">
+            <div class="container">
+                <div class="hero">
+                    <h1>Boost Your Email Deliverability</h1>
+                    <p>Professional email warmup service to improve your sender reputation and avoid the spam folder.</p>
+                    <button class="btn btn--primary btn--lg" onclick="showAuthModal('signup')">Start Free Trial</button>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Gradual Warmup</h3>
+                        <p>Slowly increase sending volume to build trust with email providers</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Real-time Analytics</h3>
+                        <p>Monitor delivery rates, spam placement, and reputation scores</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>MS365 Integration</h3>
+                        <p>Secure connection to your Microsoft 365 email accounts</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">📧 Email Warmup Pro</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item" data-view="accounts">
+                    <span class="nav-icon">📧</span>
+                    Email Accounts
+                </a>
+                <a href="#" class="nav-item" data-view="warmup">
+                    <span class="nav-icon">🔥</span>
+                    Warmup Config
+                </a>
+                <a href="#" class="nav-item" data-view="analytics">
+                    <span class="nav-icon">📈</span>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item" data-view="settings">
+                    <span class="nav-icon">⚙️</span>
+                    Settings
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn--outline btn--sm" onclick="signOut()">Sign Out</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="app-header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-info">
+                    <span id="user-email">user@example.com</span>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📨</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="total-sent">1,247</div>
+                            <div class="stat-label">Total Emails Sent</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="delivery-rate">94.5%</div>
+                            <div class="stat-label">Delivery Rate</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📥</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="inbox-rate">87.2%</div>
+                            <div class="stat-label">Inbox Placement</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="reputation-score">8.4</div>
+                            <div class="stat-label">Reputation Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <h3>Weekly Progress</h3>
+                        <canvas id="progress-chart"></canvas>
+                    </div>
+                    <div class="accounts-overview">
+                        <h3>Connected Accounts</h3>
+                        <div id="accounts-list" class="accounts-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts View -->
+            <div id="accounts-view" class="view hidden">
+                <div class="view-header">
+                    <h2>Email Accounts</h2>
+                    <button class="btn btn--primary" onclick="showConnectAccountModal()">+ Connect Account</button>
+                </div>
+                <div id="accounts-table" class="accounts-table"></div>
+            </div>
+
+            <!-- Warmup Config View -->
+            <div id="warmup-view" class="view hidden">
+                <div class="view-header">
+                    <h2>Warmup Configuration</h2>
+                </div>
+                <div class="config-grid">
+                    <div class="config-section">
+                        <h3>Warmup Schedule</h3>
+                        <div id="schedule-options" class="schedule-options"></div>
+                    </div>
+                    <div class="config-section">
+                        <h3>Target Providers</h3>
+                        <div id="provider-options" class="provider-options"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analytics-view" class="view hidden">
+                <div class="view-header">
+                    <h2>Detailed Analytics</h2>
+                </div>
+                <div class="analytics-grid">
+                    <div class="chart-container" style="position: relative; height: 400px;">
+                        <h3>Delivery Trends</h3>
+                        <canvas id="analytics-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settings-view" class="view hidden">
+                <div class="view-header">
+                    <h2>Settings</h2>
+                </div>
+                <div class="settings-grid">
+                    <div class="settings-section">
+                        <h3>Profile Settings</h3>
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="profile-email" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Timezone</label>
+                                <select class="form-control" id="timezone">
+                                    <option value="UTC">UTC</option>
+                                    <option value="EST">Eastern Time</option>
+                                    <option value="PST">Pacific Time</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="settings-section">
+                        <h3>MS365 Configuration</h3>
+                        <p class="text-secondary">Configure your Microsoft 365 application credentials for secure email account connections.</p>
+                        <button class="btn btn--primary" onclick="showMS365Modal()">Configure MS365</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Onboarding Wizard -->
+    <div id="onboarding" class="onboarding hidden">
+        <div class="onboarding-content">
+            <div class="onboarding-header">
+                <h2>Welcome to Email Warmup Pro</h2>
+                <p>Let's get your email accounts set up for warmup</p>
+            </div>
+            
+            <div id="onboarding-step-1" class="onboarding-step">
+                <h3>Step 1: Configure MS365 Integration</h3>
+                <p>First, we need to set up your Microsoft 365 application credentials.</p>
+                <form id="ms365-config-form">
+                    <div class="form-group">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" class="form-control" id="client-id" placeholder="Enter your MS365 App Client ID">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Client Secret</label>
+                        <input type="password" class="form-control" id="client-secret" placeholder="Enter your MS365 App Client Secret">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tenant ID</label>
+                        <input type="text" class="form-control" id="tenant-id" placeholder="Enter your MS365 Tenant ID">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn--outline" onclick="testMS365Connection()">Test Connection</button>
+                        <button type="submit" class="btn btn--primary">Continue</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="onboarding-step-2" class="onboarding-step hidden">
+                <h3>Step 2: Connect Your Email Accounts</h3>
+                <p>Connect the email accounts you want to warm up.</p>
+                <div class="connect-accounts">
+                    <button class="btn btn--primary btn--full-width" onclick="connectEmailAccount()">
+                        Connect Email Account
+                    </button>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn--primary" onclick="completeOnboarding()">Complete Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connect Account Modal -->
+    <div id="connect-account-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Connect Email Account</h3>
+                <button class="modal-close" onclick="closeConnectAccountModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select the email account you want to connect for warmup.</p>
+                <form id="connect-account-form">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="connect-email" placeholder="user@yourdomain.com">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn--outline" onclick="closeConnectAccountModal()">Cancel</button>
+                        <button type="submit" class="btn btn--primary">Connect Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MS365 Config Modal -->
+    <div id="ms365-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>MS365 Configuration</h3>
+                <button class="modal-close" onclick="closeMS365Modal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-instructions">
+                    <h4>How to create MS365 App Registration:</h4>
+                    <ol>
+                        <li>Go to Azure Portal > Azure Active Directory > App registrations</li>
+                        <li>Click "New registration"</li>
+                        <li>Enter name: "Email Warmup Pro"</li>
+                        <li>Select "Web" and enter redirect URI</li>
+                        <li>Copy the Application (client) ID and Directory (tenant) ID</li>
+                        <li>Go to "Certificates & secrets" and create a new client secret</li>
+                    </ol>
+                </div>
+                <form id="ms365-modal-form">
+                    <div class="form-group">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" class="form-control" id="modal-client-id">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Client Secret</label>
+                        <input type="password" class="form-control" id="modal-client-secret">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tenant ID</label>
+                        <input type="text" class="form-control" id="modal-tenant-id">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn--outline" onclick="closeMS365Modal()">Cancel</button>
+                        <button type="submit" class="btn btn--primary">Save Configuration</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
