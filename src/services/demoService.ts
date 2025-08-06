@@ -255,7 +255,7 @@ export class DemoService {
       insights.push({
         type: 'warning',
         title: 'High Volume vs Delivery Gap',
-        message: 'There\'s a significant gap between sent and delivered emails.',
+        message: 'There&apos;s a significant gap between sent and delivered emails.',
         recommendation: 'Review your content and recipient list quality.'
       })
     }
