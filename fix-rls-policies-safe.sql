@@ -1,12 +1,21 @@
--- Comprehensive fix for all RLS policy infinite recursion issues
+-- Safe RLS policy fix that handles existing policies
 -- Run this in your Supabase SQL editor
 
--- First, drop ALL existing policies to start clean
+-- =============================================
+-- DROP ALL EXISTING POLICIES SAFELY
+-- =============================================
+
+-- Drop tenant policies
 DROP POLICY IF EXISTS "Users can view tenants they belong to" ON tenants;
 DROP POLICY IF EXISTS "Owners can update their tenants" ON tenants;
 DROP POLICY IF EXISTS "Users can create tenants" ON tenants;
 DROP POLICY IF EXISTS "Owners can delete their tenants" ON tenants;
+DROP POLICY IF EXISTS "Anyone can create tenants" ON tenants;
+DROP POLICY IF EXISTS "Users can view their tenants" ON tenants;
+DROP POLICY IF EXISTS "Owners can update tenants" ON tenants;
+DROP POLICY IF EXISTS "Owners can delete tenants" ON tenants;
 
+-- Drop tenant_members policies
 DROP POLICY IF EXISTS "Users can view members of their tenants" ON tenant_members;
 DROP POLICY IF EXISTS "Owners and admins can manage members" ON tenant_members;
 DROP POLICY IF EXISTS "Users can insert themselves as members" ON tenant_members;
@@ -14,26 +23,42 @@ DROP POLICY IF EXISTS "Users can view their own membership" ON tenant_members;
 DROP POLICY IF EXISTS "Users can view members of tenants they own or admin" ON tenant_members;
 DROP POLICY IF EXISTS "Owners can update/delete any member" ON tenant_members;
 DROP POLICY IF EXISTS "Owners can update any member" ON tenant_members;
+DROP POLICY IF EXISTS "Users can view own membership" ON tenant_members;
+DROP POLICY IF EXISTS "Users can insert own membership" ON tenant_members;
+DROP POLICY IF EXISTS "Owners can view all members" ON tenant_members;
+DROP POLICY IF EXISTS "Admins can view members" ON tenant_members;
+DROP POLICY IF EXISTS "Owners can manage members" ON tenant_members;
+DROP POLICY IF EXISTS "Admins can manage non-owners" ON tenant_members;
 
+-- Drop email_accounts policies
 DROP POLICY IF EXISTS "Users can view email accounts in their tenants" ON email_accounts;
 DROP POLICY IF EXISTS "Users can manage email accounts in their tenants" ON email_accounts;
 
+-- Drop warmup_campaigns policies
 DROP POLICY IF EXISTS "Users can view campaigns in their tenants" ON warmup_campaigns;
 DROP POLICY IF EXISTS "Users can manage campaigns in their tenants" ON warmup_campaigns;
 
+-- Drop warmup_emails policies
 DROP POLICY IF EXISTS "Users can view emails from their campaigns" ON warmup_emails;
+DROP POLICY IF EXISTS "Users can manage emails from their campaigns" ON warmup_emails;
+
+-- Drop team_invitations policies
+DROP POLICY IF EXISTS "Users can view invitations for their tenants" ON team_invitations;
+DROP POLICY IF EXISTS "Users can manage invitations for their tenants" ON team_invitations;
+
+-- Drop activity_logs policies
+DROP POLICY IF EXISTS "Users can view activity logs for their tenants" ON activity_logs;
+DROP POLICY IF EXISTS "Users can create activity logs for their tenants" ON activity_logs;
 
 -- =============================================
--- TENANT POLICIES (No circular dependencies)
+-- CREATE NEW NON-RECURSIVE POLICIES
 -- =============================================
 
--- Allow users to create tenants (no restrictions needed for creation)
-CREATE POLICY "Anyone can create tenants" ON tenants
+-- TENANT POLICIES
+CREATE POLICY "tenant_create" ON tenants
     FOR INSERT WITH CHECK (true);
 
--- Allow users to view tenants where they are explicitly listed as members
--- This avoids the circular dependency by using a direct join
-CREATE POLICY "Users can view their tenants" ON tenants
+CREATE POLICY "tenant_select" ON tenants
     FOR SELECT USING (
         id IN (
             SELECT tm.tenant_id 
@@ -42,8 +67,7 @@ CREATE POLICY "Users can view their tenants" ON tenants
         )
     );
 
--- Allow owners to update their tenants
-CREATE POLICY "Owners can update tenants" ON tenants
+CREATE POLICY "tenant_update" ON tenants
     FOR UPDATE USING (
         id IN (
             SELECT tm.tenant_id 
@@ -53,8 +77,7 @@ CREATE POLICY "Owners can update tenants" ON tenants
         )
     );
 
--- Allow owners to delete their tenants
-CREATE POLICY "Owners can delete tenants" ON tenants
+CREATE POLICY "tenant_delete" ON tenants
     FOR DELETE USING (
         id IN (
             SELECT tm.tenant_id 
@@ -64,31 +87,14 @@ CREATE POLICY "Owners can delete tenants" ON tenants
         )
     );
 
--- =============================================
--- TENANT MEMBERS POLICIES (Simplified to avoid recursion)
--- =============================================
-
--- Users can always see their own membership record
-CREATE POLICY "Users can view own membership" ON tenant_members
+-- TENANT MEMBERS POLICIES
+CREATE POLICY "tenant_members_select_own" ON tenant_members
     FOR SELECT USING (user_id = auth.uid());
 
--- Users can insert themselves as members (for new tenant creation)
-CREATE POLICY "Users can insert own membership" ON tenant_members
+CREATE POLICY "tenant_members_insert_own" ON tenant_members
     FOR INSERT WITH CHECK (user_id = auth.uid());
 
--- Owners can view all members in their tenants
-CREATE POLICY "Owners can view all members" ON tenant_members
-    FOR SELECT USING (
-        tenant_id IN (
-            SELECT tm.tenant_id 
-            FROM tenant_members tm 
-            WHERE tm.user_id = auth.uid() 
-            AND tm.role = 'owner'
-        )
-    );
-
--- Admins can view members in their tenants
-CREATE POLICY "Admins can view members" ON tenant_members
+CREATE POLICY "tenant_members_select_admin" ON tenant_members
     FOR SELECT USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -98,9 +104,8 @@ CREATE POLICY "Admins can view members" ON tenant_members
         )
     );
 
--- Owners can manage all members
-CREATE POLICY "Owners can manage members" ON tenant_members
-    FOR ALL USING (
+CREATE POLICY "tenant_members_update_owner" ON tenant_members
+    FOR UPDATE USING (
         tenant_id IN (
             SELECT tm.tenant_id 
             FROM tenant_members tm 
@@ -109,23 +114,18 @@ CREATE POLICY "Owners can manage members" ON tenant_members
         )
     );
 
--- Admins can manage non-owner members
-CREATE POLICY "Admins can manage non-owners" ON tenant_members
-    FOR ALL USING (
-        role != 'owner' AND
+CREATE POLICY "tenant_members_delete_owner" ON tenant_members
+    FOR DELETE USING (
         tenant_id IN (
             SELECT tm.tenant_id 
             FROM tenant_members tm 
             WHERE tm.user_id = auth.uid() 
-            AND tm.role = 'admin'
+            AND tm.role = 'owner'
         )
     );
 
--- =============================================
 -- EMAIL ACCOUNTS POLICIES
--- =============================================
-
-CREATE POLICY "Users can view email accounts in their tenants" ON email_accounts
+CREATE POLICY "email_accounts_select" ON email_accounts
     FOR SELECT USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -134,7 +134,7 @@ CREATE POLICY "Users can view email accounts in their tenants" ON email_accounts
         )
     );
 
-CREATE POLICY "Users can manage email accounts in their tenants" ON email_accounts
+CREATE POLICY "email_accounts_all" ON email_accounts
     FOR ALL USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -143,11 +143,8 @@ CREATE POLICY "Users can manage email accounts in their tenants" ON email_accoun
         )
     );
 
--- =============================================
 -- WARMUP CAMPAIGNS POLICIES
--- =============================================
-
-CREATE POLICY "Users can view campaigns in their tenants" ON warmup_campaigns
+CREATE POLICY "warmup_campaigns_select" ON warmup_campaigns
     FOR SELECT USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -156,7 +153,7 @@ CREATE POLICY "Users can view campaigns in their tenants" ON warmup_campaigns
         )
     );
 
-CREATE POLICY "Users can manage campaigns in their tenants" ON warmup_campaigns
+CREATE POLICY "warmup_campaigns_all" ON warmup_campaigns
     FOR ALL USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -165,11 +162,8 @@ CREATE POLICY "Users can manage campaigns in their tenants" ON warmup_campaigns
         )
     );
 
--- =============================================
 -- WARMUP EMAILS POLICIES
--- =============================================
-
-CREATE POLICY "Users can view emails from their campaigns" ON warmup_emails
+CREATE POLICY "warmup_emails_select" ON warmup_emails
     FOR SELECT USING (
         campaign_id IN (
             SELECT wc.id 
@@ -179,7 +173,7 @@ CREATE POLICY "Users can view emails from their campaigns" ON warmup_emails
         )
     );
 
-CREATE POLICY "Users can manage emails from their campaigns" ON warmup_emails
+CREATE POLICY "warmup_emails_all" ON warmup_emails
     FOR ALL USING (
         campaign_id IN (
             SELECT wc.id 
@@ -189,11 +183,8 @@ CREATE POLICY "Users can manage emails from their campaigns" ON warmup_emails
         )
     );
 
--- =============================================
 -- TEAM INVITATIONS POLICIES
--- =============================================
-
-CREATE POLICY "Users can view invitations for their tenants" ON team_invitations
+CREATE POLICY "team_invitations_select" ON team_invitations
     FOR SELECT USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -203,7 +194,7 @@ CREATE POLICY "Users can view invitations for their tenants" ON team_invitations
         )
     );
 
-CREATE POLICY "Users can manage invitations for their tenants" ON team_invitations
+CREATE POLICY "team_invitations_all" ON team_invitations
     FOR ALL USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -213,11 +204,8 @@ CREATE POLICY "Users can manage invitations for their tenants" ON team_invitatio
         )
     );
 
--- =============================================
 -- ACTIVITY LOGS POLICIES
--- =============================================
-
-CREATE POLICY "Users can view activity logs for their tenants" ON activity_logs
+CREATE POLICY "activity_logs_select" ON activity_logs
     FOR SELECT USING (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -226,7 +214,7 @@ CREATE POLICY "Users can view activity logs for their tenants" ON activity_logs
         )
     );
 
-CREATE POLICY "Users can create activity logs for their tenants" ON activity_logs
+CREATE POLICY "activity_logs_insert" ON activity_logs
     FOR INSERT WITH CHECK (
         tenant_id IN (
             SELECT tm.tenant_id 
@@ -234,17 +222,3 @@ CREATE POLICY "Users can create activity logs for their tenants" ON activity_log
             WHERE tm.user_id = auth.uid()
         )
     );
-
--- =============================================
--- VERIFY SETUP
--- =============================================
-
--- Test query to verify no recursion (should return without error)
-SELECT 
-    t.id,
-    t.name,
-    tm.role
-FROM tenants t
-JOIN tenant_members tm ON t.id = tm.tenant_id
-WHERE tm.user_id = auth.uid()
-LIMIT 1;

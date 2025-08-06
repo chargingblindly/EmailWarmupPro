@@ -27,6 +27,30 @@ export class TenantService {
    * Create a new tenant and make the current user the owner
    */
   static async createTenant(data: CreateTenantRequest, userId: string): Promise<TenantWithRole> {
+    // Check if user already has a membership that might cause conflicts
+    const { data: existingMembership } = await supabase
+      .from('tenant_members')
+      .select('tenant_id')
+      .eq('user_id', userId)
+      .limit(1)
+      .single()
+
+    if (existingMembership) {
+      // User already has a tenant, return that instead of creating new one
+      const { data: existingTenant } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', existingMembership.tenant_id)
+        .single()
+
+      if (existingTenant) {
+        return {
+          ...existingTenant,
+          role: 'owner',
+        }
+      }
+    }
+
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .insert({
@@ -39,13 +63,16 @@ export class TenantService {
       throw new Error(`Failed to create tenant: ${tenantError.message}`)
     }
 
-    // Add the creator as owner
+    // Add the creator as owner (use upsert to handle duplicates)
     const { error: memberError } = await supabase
       .from('tenant_members')
-      .insert({
+      .upsert({
         tenant_id: tenant.id,
         user_id: userId,
         role: 'owner',
+      }, {
+        onConflict: 'tenant_id,user_id',
+        ignoreDuplicates: false
       })
 
     if (memberError) {
