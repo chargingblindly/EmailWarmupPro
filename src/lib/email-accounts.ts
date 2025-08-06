@@ -121,8 +121,8 @@ export class EmailAccountService {
     }
 
     try {
-      // Mock token refresh - in real implementation, this would call MS365 API
-      const newTokenData = await this.mockRefreshToken(account.refresh_token)
+      // Refresh token using real MS365 API
+      const newTokenData = await this.refreshMSToken(account.refresh_token)
       
       await this.updateEmailAccount(accountId, tenantId, {
         access_token: newTokenData.access_token,
@@ -148,8 +148,8 @@ export class EmailAccountService {
       return false
     }
 
-    // Mock connection test - in real implementation, this would test MS365 API
-    return this.mockTestConnection(account.access_token)
+    // Test real MS365 API connection
+    return this.testMSConnection(account.access_token)
   }
 
   private static async checkConnectionStatus(account: EmailAccount): Promise<'connected' | 'expired' | 'error'> {
@@ -157,42 +157,39 @@ export class EmailAccountService {
       return 'error'
     }
 
-    // Mock status check - in real implementation, this would validate with MS365
-    const isValid = await this.mockValidateToken(account.access_token)
+    // Check status with real MS365 API
+    const isValid = await MS365OAuth.validateToken(account.access_token)
     return isValid ? 'connected' : 'expired'
   }
 
-  // Mock MS365 API methods for demo purposes
-  private static async mockValidateToken(token: string | null): Promise<boolean> {
-    if (!token) return false
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    // Mock validation: tokens starting with 'expired_' are considered expired
-    return !token.startsWith('expired_')
-  }
+  // MS365 API validation is now handled through MS365OAuth.validateToken
 
-  private static async mockRefreshToken(_refreshToken: string): Promise<MS365AuthData> {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    return {
-      access_token: `refreshed_${Date.now()}`,
-      refresh_token: `refresh_${Date.now()}`,
-      email: 'mock@example.com',
-      expires_in: 3600
+  private static async refreshMSToken(refreshToken: string): Promise<MS365AuthData> {
+    try {
+      const tokenResponse = await MS365OAuth.refreshAccessToken(refreshToken)
+      const userInfo = await MS365OAuth.getUserInfo(tokenResponse.access_token)
+      
+      return {
+        access_token: tokenResponse.access_token,
+        refresh_token: tokenResponse.refresh_token,
+        email: userInfo.email,
+        expires_in: tokenResponse.expires_in
+      }
+    } catch (error) {
+      console.error('Error refreshing MS365 token:', error)
+      throw new Error('Failed to refresh MS365 token')
     }
   }
 
-  private static async mockTestConnection(token: string | null): Promise<boolean> {
+  private static async testMSConnection(token: string | null): Promise<boolean> {
     if (!token) return false
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    // Mock connection test: 90% success rate
-    return Math.random() > 0.1
+    try {
+      return await MS365OAuth.testConnection(token)
+    } catch (error) {
+      console.error('Error testing MS365 connection:', error)
+      return false
+    }
   }
 }
 

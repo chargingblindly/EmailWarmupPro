@@ -1,5 +1,5 @@
-// Mock MS365 OAuth implementation for demo purposes
-// In a real application, this would integrate with Microsoft Graph API
+// Real MS365 OAuth implementation using Microsoft Graph API
+// Requires Microsoft App registration in Azure Portal
 
 export interface MS365OAuthConfig {
   clientId: string
@@ -24,8 +24,9 @@ export interface MS365TokenResponse {
 }
 
 export class MS365OAuth {
-  private static readonly MOCK_CLIENT_ID = 'demo-app-12345'
-  private static readonly MOCK_REDIRECT_URI = `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard/accounts/oauth/callback`
+  private static readonly CLIENT_ID = process.env.NEXT_PUBLIC_MS365_CLIENT_ID || ''
+  private static readonly TENANT_ID = process.env.MS365_TENANT_ID || 'common'
+  private static readonly REDIRECT_URI = `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard/accounts/oauth/callback`
   
   private static readonly DEFAULT_SCOPES = [
     'https://graph.microsoft.com/Mail.ReadWrite',
@@ -35,9 +36,13 @@ export class MS365OAuth {
   ]
 
   static getConfig(): MS365OAuthConfig {
+    if (!this.CLIENT_ID) {
+      throw new Error('NEXT_PUBLIC_MS365_CLIENT_ID environment variable is required')
+    }
+    
     return {
-      clientId: this.MOCK_CLIENT_ID,
-      redirectUri: this.MOCK_REDIRECT_URI,
+      clientId: this.CLIENT_ID,
+      redirectUri: this.REDIRECT_URI,
       scopes: this.DEFAULT_SCOPES
     }
   }
@@ -53,88 +58,152 @@ export class MS365OAuth {
       state: state || this.generateState()
     })
 
-    // Mock Microsoft OAuth URL
-    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`
+    return `https://login.microsoftonline.com/${this.TENANT_ID}/oauth2/v2.0/authorize?${params.toString()}`
   }
 
   static generateState(): string {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   }
 
-  static async exchangeCodeForTokens(_code: string, _state?: string): Promise<MS365TokenResponse> {
-    // Mock token exchange - simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+  static async exchangeCodeForTokens(code: string, state?: string): Promise<MS365TokenResponse> {
+    const config = this.getConfig()
     
-    // In real implementation, this would POST to Microsoft's token endpoint
-    return {
-      access_token: `mock_access_token_${Date.now()}`,
-      refresh_token: `mock_refresh_token_${Date.now()}`,
-      expires_in: 3600,
-      token_type: 'Bearer',
-      scope: this.DEFAULT_SCOPES.join(' ')
+    try {
+      const response = await fetch('/api/auth/ms365/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: code,
+          redirectUri: config.redirectUri
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Token exchange failed')
+      }
+
+      const tokenData: MS365TokenResponse = await response.json()
+      return tokenData
+    } catch (error) {
+      console.error('Error exchanging code for tokens:', error)
+      throw new Error(`Failed to exchange authorization code: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  static async getUserInfo(_accessToken: string): Promise<MS365UserInfo> {
-    // Mock user info retrieval - simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Generate mock user data
-    const mockEmails = [
-      'john.doe@company.com',
-      'jane.smith@business.org',
-      'mike.johnson@enterprise.net',
-      'sarah.wilson@corporation.com',
-      'david.brown@organization.co'
-    ]
-    
-    const mockNames = [
-      { first: 'John', last: 'Doe' },
-      { first: 'Jane', last: 'Smith' },
-      { first: 'Mike', last: 'Johnson' },
-      { first: 'Sarah', last: 'Wilson' },
-      { first: 'David', last: 'Brown' }
-    ]
-    
-    const randomUser = mockNames[Math.floor(Math.random() * mockNames.length)]
-    const randomEmail = mockEmails[Math.floor(Math.random() * mockEmails.length)]
-    
-    return {
-      id: `mock_user_${Date.now()}`,
-      email: randomEmail,
-      displayName: `${randomUser.first} ${randomUser.last}`,
-      givenName: randomUser.first,
-      surname: randomUser.last
+  static async getUserInfo(accessToken: string): Promise<MS365UserInfo> {
+    try {
+      const response = await fetch('/api/ms365/user', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to get user info')
+      }
+
+      const userData: MS365UserInfo = await response.json()
+      return userData
+    } catch (error) {
+      console.error('Error getting user info:', error)
+      throw new Error(`Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   static async refreshAccessToken(refreshToken: string): Promise<MS365TokenResponse> {
-    // Mock token refresh - simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    return {
-      access_token: `refreshed_access_token_${Date.now()}`,
-      refresh_token: refreshToken, // Refresh token typically stays the same
-      expires_in: 3600,
-      token_type: 'Bearer',
-      scope: this.DEFAULT_SCOPES.join(' ')
+    try {
+      const response = await fetch('/api/auth/ms365/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          refreshToken: refreshToken
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Token refresh failed')
+      }
+
+      const tokenData: MS365TokenResponse = await response.json()
+      return tokenData
+    } catch (error) {
+      console.error('Error refreshing access token:', error)
+      throw new Error(`Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   static async validateToken(accessToken: string): Promise<boolean> {
-    // Mock token validation - simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 200))
-    
-    // Mock validation logic
-    return !!(accessToken && !accessToken.startsWith('expired_'))
+    try {
+      const response = await fetch('/api/ms365/test-connection', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        return false
+      }
+
+      const result = await response.json()
+      return result.connected
+    } catch (error) {
+      console.error('Error validating token:', error)
+      return false
+    }
   }
 
-  static async revokeToken(_accessToken: string): Promise<boolean> {
-    // Mock token revocation - simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    // Always return success for mock
-    return true
+  static async revokeToken(accessToken: string): Promise<boolean> {
+    try {
+      // Microsoft Graph doesn't have a direct revoke endpoint for access tokens
+      // Access tokens expire automatically. For a more complete implementation,
+      // you could invalidate the token on your server side
+      return true
+    } catch (error) {
+      console.error('Error revoking token:', error)
+      return false
+    }
+  }
+
+  // Additional helper methods for email functionality
+  static async sendEmail(accessToken: string, emailData: {
+    subject: string
+    body: string
+    recipients: string[]
+  }): Promise<boolean> {
+    try {
+      const response = await fetch('/api/ms365/send-email', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send email')
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error sending email:', error)
+      throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  static async testConnection(accessToken: string): Promise<boolean> {
+    return this.validateToken(accessToken)
   }
 }
 
