@@ -635,9 +635,11 @@ function renderWarmupConfig() {
   if (!providerContainer) return;
 
   const selectedProviders = getUserPreference('selectedProviders') || ['Gmail', 'Outlook'];
+  // Ensure selectedProviders is always an array
+  const selectedProvidersArray = Array.isArray(selectedProviders) ? selectedProviders : ['Gmail', 'Outlook'];
   
   providerContainer.innerHTML = mockData.emailProviders.map(provider => `
-    <div class="provider-option ${selectedProviders.includes(provider.name) ? 'selected' : ''}" data-provider="${provider.name}">
+    <div class="provider-option ${selectedProvidersArray.includes(provider.name) ? 'selected' : ''}" data-provider="${provider.name}">
       <div class="provider-icon">${provider.icon}</div>
       <div class="provider-name">${provider.name}</div>
       <div class="provider-coverage">${provider.coverage}</div>
