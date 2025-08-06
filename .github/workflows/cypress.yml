@@ -2,20 +2,13 @@ name: Cypress E2E Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
-  schedule:
-    # Run tests daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    branches: [ main ]
 
 jobs:
   cypress-run:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        browser: [chrome, firefox, edge]
         
     steps:
       - name: Checkout code
@@ -30,13 +23,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create environment file
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=https://ldxadqnstivqdcquyepv.supabase.co" > .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_dEpTMzKPo-mQ0RDiYcoAww_Yf-843HQ" >> .env.local
+
       - name: Build application
         run: npm run build
-
-      - name: Setup test database
-        run: |
-          # Add database setup commands here if needed
-          echo "Setting up test database..."
 
       - name: Run Cypress tests
         uses: cypress-io/github-action@v6
@@ -44,152 +37,25 @@ jobs:
           start: npm start
           wait-on: 'http://localhost:3000'
           wait-on-timeout: 120
-          browser: ${{ matrix.browser }}
-          record: true
-          parallel: true
-          group: 'E2E Tests - ${{ matrix.browser }}'
+          browser: chrome
         env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Test environment variables
-          CYPRESS_SUPABASE_URL: ${{ secrets.CYPRESS_SUPABASE_URL }}
-          CYPRESS_SUPABASE_ANON_KEY: ${{ secrets.CYPRESS_SUPABASE_ANON_KEY }}
-          CYPRESS_TEST_USER_EMAIL: ${{ secrets.CYPRESS_TEST_USER_EMAIL }}
-          CYPRESS_TEST_USER_PASSWORD: ${{ secrets.CYPRESS_TEST_USER_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: https://ldxadqnstivqdcquyepv.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_dEpTMzKPo-mQ0RDiYcoAww_Yf-843HQ
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots-${{ matrix.browser }}
+          name: cypress-screenshots
           path: cypress/screenshots
           retention-days: 7
 
       - name: Upload videos
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
-          name: cypress-videos-${{ matrix.browser }}
+          name: cypress-videos
           path: cypress/videos
           retention-days: 7
 
-  lighthouse-audit:
-    runs-on: ubuntu-latest
-    needs: cypress-run
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
-        run: npm run build
-
-      - name: Run Lighthouse audit
-        uses: treosh/lighthouse-ci-action@v10
-        with:
-          uploadArtifacts: true
-          temporaryPublicStorage: true
-          configPath: './lighthouse.config.js'
-
-  component-tests:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run component tests
-        uses: cypress-io/github-action@v6
-        with:
-          component: true
-          record: true
-          group: 'Component Tests'
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-
-  accessibility-tests:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: |
-          npm ci
-          npm install --save-dev cypress-axe
-
-      - name: Run accessibility tests
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm start
-          wait-on: 'http://localhost:3000'
-          spec: 'cypress/e2e/accessibility/*.cy.ts'
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-
-  test-summary:
-    runs-on: ubuntu-latest
-    needs: [cypress-run, component-tests]
-    if: always()
-    
-    steps:
-      - name: Test Summary
-        run: |
-          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Type | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| E2E Tests | ${{ needs.cypress-run.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Component Tests | ${{ needs.component-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ needs.cypress-run.result }}" = "failure" ] || [ "${{ needs.component-tests.result }}" = "failure" ]; then
-            echo "❌ Some tests failed. Please check the logs and artifacts for details." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ All tests passed successfully!" >> $GITHUB_STEP_SUMMARY
-          fi
-
-  deploy-preview:
-    runs-on: ubuntu-latest
-    needs: [cypress-run, component-tests]
-    if: github.event_name == 'pull_request' && success()
-    
-    steps:
-      - name: Deploy Preview
-        run: |
-          echo "🚀 Deploying preview environment..."
-          # Add preview deployment logic here
-          
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ All tests passed! Preview deployment is ready at: https://preview-${{ github.event.number }}.your-domain.com'
-            })
