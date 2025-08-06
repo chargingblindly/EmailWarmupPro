@@ -2,7 +2,9 @@
   command = "npm run build"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
+  NEXT_PUBLIC_SUPABASE_URL = "https://ldxadqnstivqdcquyepv.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_dEpTMzKPo-mQ0RDiYcoAww_Yf-843HQ"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -17,9 +19,7 @@
   to = "/index.html"
   status = 200
 
-# Environment variables (set these in Netlify dashboard)
-# NEXT_PUBLIC_SUPABASE_URL=https://ldxadqnstivqdcquyepv.supabase.co
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_dEpTMzKPo-mQ0RDiYcoAww_Yf-843HQ
+# Environment variables now set above in [build.environment]
 
 # Headers for security
 [[headers]]
