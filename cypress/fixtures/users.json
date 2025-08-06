@@ -1,0 +1,27 @@
+{
+  "testUser": {
+    "email": "test@example.com",
+    "password": "testpassword123",
+    "firstName": "Test",
+    "lastName": "User"
+  },
+  "adminUser": {
+    "email": "admin@example.com",
+    "password": "adminpassword123",
+    "firstName": "Admin",
+    "lastName": "User"
+  },
+  "teamMember": {
+    "email": "member@example.com",
+    "password": "memberpassword123",
+    "firstName": "Team",
+    "lastName": "Member"
+  },
+  "newUser": {
+    "email": "newuser@example.com",
+    "password": "newuserpassword123",
+    "firstName": "New",
+    "lastName": "User",
+    "organization": "Test Organization"
+  }
+}

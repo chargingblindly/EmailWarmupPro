@@ -1,0 +1,42 @@
+{
+  "testAccount": {
+    "email": "test.account@company.com",
+    "provider": "microsoft",
+    "status": "connected"
+  },
+  "secondaryAccount": {
+    "email": "secondary@company.com",
+    "provider": "microsoft",
+    "status": "connected"
+  },
+  "mockAccounts": [
+    {
+      "id": "account-1",
+      "email": "alice@company.com",
+      "provider": "microsoft",
+      "status": "connected",
+      "lastSync": "2024-01-15T10:30:00Z",
+      "warmupScore": 85,
+      "dailyLimit": 50
+    },
+    {
+      "id": "account-2",
+      "email": "bob@company.com",
+      "provider": "microsoft",
+      "status": "syncing",
+      "lastSync": "2024-01-15T09:45:00Z",
+      "warmupScore": 72,
+      "dailyLimit": 75
+    },
+    {
+      "id": "account-3",
+      "email": "charlie@company.com",
+      "provider": "microsoft",
+      "status": "error",
+      "lastSync": "2024-01-14T16:20:00Z",
+      "warmupScore": 0,
+      "dailyLimit": 0,
+      "error": "Authentication failed"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "email-warmup-pro",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:headed": "cypress run --headed",
+    "cy:run:chrome": "cypress run --browser chrome",
+    "cy:run:firefox": "cypress run --browser firefox",
+    "cy:run:edge": "cypress run --browser edge",
+    "test:e2e": "cypress run",
+    "test:e2e:dev": "start-server-and-test dev http://localhost:3000 cy:open",
+    "test:e2e:ci": "start-server-and-test start http://localhost:3000 cy:run",
+    "test:component": "cypress run --component",
+    "test:component:dev": "cypress open --component"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
+    "@supabase/auth-ui-react": "^0.4.7",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.53.0",
+    "lucide-react": "^0.536.0",
+    "next": "15.4.5",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.62.0",
+    "recharts": "^3.1.2",
+    "uuid": "^11.1.0",
+    "zod": "^4.0.14"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
+    "cypress": "^14.5.3",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.5",
+    "start-server-and-test": "^2.0.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
