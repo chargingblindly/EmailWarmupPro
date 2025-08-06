@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { Plus, RefreshCw, Settings, AlertCircle } from 'lucide-react'
 import { useTenant } from '@/contexts/TenantContext'
