@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailWarmup Pro - Professional Email Warmup Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1 class="logo">EmailWarmup Pro</h1>
+            <div class="save-status" id="save-status">
+                <span class="save-indicator" id="save-indicator">●</span>
+                <span class="save-text" id="save-text">Saved</span>
+            </div>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="#" class="nav-link active" data-view="dashboard">📊 Dashboard</a></li>
+            <li><a href="#" class="nav-link" data-view="accounts">📧 Email Accounts</a></li>
+            <li><a href="#" class="nav-link" data-view="campaigns">🚀 Campaigns</a></li>
+            <li><a href="#" class="nav-link" data-view="analytics">📈 Analytics</a></li>
+            <li><a href="#" class="nav-link" data-view="settings">⚙️ Settings</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="view active">
+            <div class="view-header">
+                <h2>Dashboard Overview</h2>
+                <div class="header-actions">
+                    <button class="btn btn--primary" onclick="showAddAccountModal()">Add Email Account</button>
+                    <button class="btn btn--secondary" onclick="showView('campaigns')">Start New Campaign</button>
+                </div>
+            </div>
+
+            <div class="overview-cards">
+                <div class="card overview-card">
+                    <div class="card__body">
+                        <h3>Total Connected Accounts</h3>
+                        <div class="metric-value" id="total-accounts">3</div>
+                        <div class="metric-change positive">+1 this month</div>
+                    </div>
+                </div>
+                <div class="card overview-card">
+                    <div class="card__body">
+                        <h3>Active Warmup Campaigns</h3>
+                        <div class="metric-value" id="active-campaigns">2</div>
+                        <div class="metric-change neutral">2 running</div>
+                    </div>
+                </div>
+                <div class="card overview-card">
+                    <div class="card__body">
+                        <h3>Today's Emails Sent</h3>
+                        <div class="metric-value" id="emails-today">95</div>
+                        <div class="metric-change positive">+4% vs yesterday</div>
+                    </div>
+                </div>
+                <div class="card overview-card">
+                    <div class="card__body">
+                        <h3>Average Deliverability Rate</h3>
+                        <div class="metric-value" id="avg-deliverability">93%</div>
+                        <div class="metric-change positive">+2% this week</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card recent-activity">
+                    <div class="card__header">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="activity-list" id="activity-list">
+                            <!-- Activity items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card account-status">
+                    <div class="card__header">
+                        <h3>Account Status</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="account-status-list" id="account-status-list">
+                            <!-- Account status items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Accounts View -->
+        <div id="accounts-view" class="view">
+            <div class="view-header">
+                <h2>Email Accounts</h2>
+                <div class="header-actions">
+                    <button class="btn btn--primary" onclick="showAddAccountModal()">Add New Account</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Email Address</th>
+                                    <th>Provider</th>
+                                    <th>Status</th>
+                                    <th>Last Activity</th>
+                                    <th>Warmup Progress</th>
+                                    <th>Daily Volume</th>
+                                    <th>Deliverability</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accounts-table-body">
+                                <!-- Account rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaigns View -->
+        <div id="campaigns-view" class="view">
+            <div class="view-header">
+                <h2>Warmup Campaigns</h2>
+                <div class="header-actions">
+                    <button class="btn btn--primary" onclick="showCreateCampaignModal()">Create New Campaign</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card__body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Campaign Name</th>
+                                    <th>Email Account</th>
+                                    <th>Status</th>
+                                    <th>Strategy</th>
+                                    <th>Progress</th>
+                                    <th>Current Volume</th>
+                                    <th>Target Volume</th>
+                                    <th>Days Running</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaigns-table-body">
+                                <!-- Campaign rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics View -->
+        <div id="analytics-view" class="view">
+            <div class="view-header">
+                <h2>Analytics & Reports</h2>
+                <div class="header-actions">
+                    <select class="form-control time-period-selector">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 3 months</option>
+                    </select>
+                    <button class="btn btn--secondary">Export Report</button>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="card chart-card">
+                    <div class="card__header">
+                        <h3>Deliverability Rate Trends</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="chart-container" style="position: relative; height: 300px;">
+                            <canvas id="deliverability-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card chart-card">
+                    <div class="card__header">
+                        <h3>Email Volume Progression</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="chart-container" style="position: relative; height: 300px;">
+                            <canvas id="volume-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card metrics-summary">
+                    <div class="card__header">
+                        <h3>Performance Summary</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <span class="metric-label">Total Emails Sent</span>
+                                <span class="metric-value">461</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Average Delivery Rate</span>
+                                <span class="metric-value">93.7%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Bounce Rate</span>
+                                <span class="metric-value">2.8%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Complaint Rate</span>
+                                <span class="metric-value">0.3%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card comparison-chart">
+                    <div class="card__header">
+                        <h3>Industry Benchmark Comparison</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="benchmark-chart-placeholder">
+                            <p>Industry Benchmark Data</p>
+                            <div class="benchmark-metrics">
+                                <div class="benchmark-item">
+                                    <span>Your Performance: 93%</span>
+                                    <span>Industry Average: 87%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" class="view">
+            <div class="view-header">
+                <h2>Settings</h2>
+            </div>
+
+            <div class="settings-grid">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Account Settings</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" value="John Smith" id="user-name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="john@company.com" id="user-email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Plan</label>
+                            <div class="plan-info">
+                                <span class="status status--success">Professional</span>
+                                <button class="btn btn--outline btn--sm">Upgrade Plan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Notification Preferences</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked id="email-alerts">
+                                Email Alerts
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked id="dashboard-notifications">
+                                Dashboard Notifications
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked id="weekly-reports">
+                                Weekly Reports
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Warmup Defaults</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="form-group">
+                            <label class="form-label">Default Strategy</label>
+                            <select class="form-control" id="default-strategy">
+                                <option value="gradual" selected>Gradual</option>
+                                <option value="aggressive">Aggressive</option>
+                                <option value="conservative">Conservative</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Start Volume</label>
+                            <input type="number" class="form-control" value="5" id="default-start-volume">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Target Volume</label>
+                            <input type="number" class="form-control" value="100" id="default-target-volume">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ramp Duration (days)</label>
+                            <input type="number" class="form-control" value="30" id="default-ramp-duration">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button class="btn btn--primary" onclick="saveSettings()">Save Settings</button>
+                <button class="btn btn--outline" onclick="resetSettings()">Reset to Defaults</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Account Modal -->
+    <div id="add-account-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Email Account</h3>
+                <button class="modal-close" onclick="hideModal('add-account-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Email Provider</label>
+                    <select class="form-control" id="provider-select">
+                        <option value="gmail">Gmail</option>
+                        <option value="outlook">Outlook</option>
+                        <option value="yahoo">Yahoo</option>
+                        <option value="smtp">Custom SMTP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email-input" placeholder="your-email@domain.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password / App Password</label>
+                    <input type="password" class="form-control" id="password-input">
+                </div>
+                <div id="smtp-settings" class="smtp-settings hidden">
+                    <div class="form-group">
+                        <label class="form-label">SMTP Server</label>
+                        <input type="text" class="form-control" id="smtp-server">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Port</label>
+                        <input type="number" class="form-control" id="smtp-port" value="587">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--outline" onclick="hideModal('add-account-modal')">Cancel</button>
+                <button class="btn btn--primary" onclick="addEmailAccount()">Test & Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Campaign Modal -->
+    <div id="create-campaign-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Warmup Campaign</h3>
+                <button class="modal-close" onclick="hideModal('create-campaign-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Campaign Name</label>
+                    <input type="text" class="form-control" id="campaign-name" placeholder="e.g., Sales Team Warmup">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Account</label>
+                    <select class="form-control account-selector" id="campaign-email-account">
+                        <option value="">Select an email account...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Warmup Strategy</label>
+                    <select class="form-control" id="campaign-strategy">
+                        <option value="gradual">Gradual - Slow and steady</option>
+                        <option value="aggressive">Aggressive - Fast ramp up</option>
+                        <option value="conservative">Conservative - Extra cautious</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Daily Volume</label>
+                    <input type="number" class="form-control" id="target-volume" value="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--outline" onclick="hideModal('create-campaign-modal')">Cancel</button>
+                <button class="btn btn--primary" onclick="createCampaign()">Create Campaign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Campaign Modal -->
+    <div id="edit-campaign-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Campaign</h3>
+                <button class="modal-close" onclick="hideModal('edit-campaign-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Campaign Name</label>
+                    <input type="text" class="form-control" id="edit-campaign-name" placeholder="e.g., Sales Team Warmup">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Account</label>
+                    <select class="form-control account-selector" id="edit-campaign-email-account">
+                        <option value="">Select an email account...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Warmup Strategy</label>
+                    <select class="form-control" id="edit-campaign-strategy">
+                        <option value="gradual">Gradual - Slow and steady</option>
+                        <option value="aggressive">Aggressive - Fast ramp up</option>
+                        <option value="conservative">Conservative - Extra cautious</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Daily Volume</label>
+                    <input type="number" class="form-control" id="edit-target-volume" value="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Campaign Status</label>
+                    <select class="form-control" id="edit-campaign-status">
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--outline" onclick="hideModal('edit-campaign-modal')">Cancel</button>
+                <button class="btn btn--primary" onclick="saveCampaignEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

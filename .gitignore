@@ -1,3 +1,5 @@
+# Email Warmup Pro - Comprehensive .gitignore
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -34,6 +36,7 @@ next-env.d.ts
 
 # local env files
 .env*.local
+.env
 
 # cypress
 cypress/videos
@@ -49,3 +52,31 @@ cypress/downloads
 # OS
 .DS_Store
 Thumbs.db
+
+# Python (if any server components)
+__pycache__/
+*.py[codz]
+*$py.class
+*.so
+.Python
+*.log
+.coverage
+.pytest_cache/
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# AI/ML tools
+.cursorignore
+.cursorindexingignore
+.abstra/
+.ruff_cache/
+
+# Documentation builds
+docs/_build/
+/site
