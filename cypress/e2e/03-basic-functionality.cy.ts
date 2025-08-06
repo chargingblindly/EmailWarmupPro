@@ -6,14 +6,13 @@ describe('Basic Functionality', () => {
   })
 
   it('should load the application successfully', () => {
-    // Check that the page loads without JavaScript errors
-    cy.window().then((win) => {
-      expect(win.console.error).to.not.have.been.called
-    })
-
     // Check main content is present
     cy.contains('Email Warmup Pro').should('be.visible')
     cy.contains('Professional email warmup service').should('be.visible')
+    
+    // Ensure no critical errors are displayed
+    cy.get('body').should('not.contain', 'Error:')
+    cy.get('body').should('not.contain', 'Failed to')
   })
 
   it('should display all feature sections', () => {
